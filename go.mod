@@ -1,6 +1,6 @@
 module energyTradingBlockchainAPI
 
-go 1.21.9
+go 1.21
 
 require gorm.io/gorm v1.25.12
 
