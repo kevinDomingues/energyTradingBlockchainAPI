@@ -30,7 +30,7 @@ func Run() {
 }
 
 func main() {
-	database.GetDatabase()
+	database.StartDB()
 
 	Run()
 }

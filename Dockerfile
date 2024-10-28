@@ -10,10 +10,10 @@ COPY . .
 
 RUN go build -o main ./cmd/main.go
 
-FROM gcr.io/distroless/base-debian11
+FROM gcr.io/distroless/base-debian12
 
 COPY --from=builder /app/main /main
 
 CMD ["/main"]
 
-EXPOSE 8080
+EXPOSE 5000

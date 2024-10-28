@@ -25,6 +25,10 @@ func ConfigRoutes(router *gin.Engine) *gin.Engine {
 			Admin.DELETE("/:id", handlers.DelAdmin)
 			Admin.PUT("/", handlers.UpdateAdmin)
 		}
+		User := main.Group("user")
+		{
+			User.POST("/create", handlers.AddUser)
+		}
 	}
 	return router
 }

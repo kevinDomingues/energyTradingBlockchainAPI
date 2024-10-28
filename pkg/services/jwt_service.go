@@ -20,13 +20,17 @@ func NewJWTService() *jwtService {
 }
 
 type Claim struct {
-	Sum uint `json:"sum"`
+	Sum             uint   `json:"sum"`
+	BlockchainToken string `json:"btkn"`
+	UserType        int    `json:"ut"`
 	jwt.StandardClaims
 }
 
-func (s *jwtService) GenerateToken(id uint) (string, error) {
+func (s *jwtService) GenerateToken(id uint, blockchainToken string, userType int) (string, error) {
 	claim := &Claim{
 		id,
+		blockchainToken,
+		userType,
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 2).Unix(),
 			Issuer:    s.issure,
