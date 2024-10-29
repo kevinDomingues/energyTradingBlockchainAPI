@@ -20,13 +20,13 @@ func NewJWTService() *jwtService {
 }
 
 type Claim struct {
-	Sum             uint   `json:"sum"`
+	Sum             string `json:"sum"`
 	BlockchainToken string `json:"btkn"`
 	UserType        int    `json:"ut"`
 	jwt.StandardClaims
 }
 
-func (s *jwtService) GenerateToken(id uint, blockchainToken string, userType int) (string, error) {
+func (s *jwtService) GenerateToken(id string, blockchainToken string, userType int) (string, error) {
 	claim := &Claim{
 		id,
 		blockchainToken,
@@ -48,8 +48,8 @@ func (s *jwtService) GenerateToken(id uint, blockchainToken string, userType int
 	return t, nil
 }
 
-func (s *jwtService) ValidateToken(token string) bool {
-	_, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
+func (s *jwtService) ValidateToken(token string) (*jwt.Token, error) {
+	parsedToken, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
 		if _, isValid := t.Method.(*jwt.SigningMethodHMAC); !isValid {
 			return nil, fmt.Errorf("Invalid token: %v", token)
 		}
@@ -57,5 +57,5 @@ func (s *jwtService) ValidateToken(token string) bool {
 		return []byte(s.secretKey), nil
 	})
 
-	return err == nil
+	return parsedToken, err
 }

@@ -2,6 +2,7 @@ package routes
 
 import (
 	"energyTradingBlockchainAPI/pkg/handlers"
+	"energyTradingBlockchainAPI/pkg/middlewares"
 
 	"github.com/gin-gonic/gin"
 	cors "github.com/rs/cors/wrapper/gin"
@@ -29,6 +30,13 @@ func ConfigRoutes(router *gin.Engine) *gin.Engine {
 		{
 			User.POST("/create", handlers.AddUser)
 		}
+		EnergyCertificate := main.Group("certificate", middlewares.Auth())
+		{
+			EnergyCertificate.POST("/create", handlers.AddEnergyCertificate)
+			EnergyCertificate.GET("/producer/:id", handlers.GetEnergyCertificateByProducerId)
+			EnergyCertificate.GET("/owned", handlers.GetEnergyCertificateByOwnerId)
+		}
+		main.POST("login", handlers.Login)
 	}
 	return router
 }

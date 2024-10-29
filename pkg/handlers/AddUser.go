@@ -6,7 +6,6 @@ import (
 	"energyTradingBlockchainAPI/pkg/database"
 	"energyTradingBlockchainAPI/pkg/models"
 	"energyTradingBlockchainAPI/pkg/services"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -15,59 +14,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
-
-type BlockchainUser struct {
-	Id     string `json:"id"`
-	Secret string `json:"secret"`
-}
-
-type TokenResponse struct {
-	Token string `json:"token"`
-}
-
-func getBearerToken(c *gin.Context, getTokenUrl string) (string, error) {
-	blockchainUser := BlockchainUser{
-		Id:     os.Getenv("BLOCKCHAIN_ADMIN"),
-		Secret: os.Getenv("BLOCKCHAIN_ADMIN_SECRET"),
-	}
-
-	data, err := json.Marshal(blockchainUser)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to marshal JSON: " + err.Error(),
-		})
-		return "", err
-	}
-
-	reader := bytes.NewReader(data)
-
-	request, err := http.NewRequest("POST", getTokenUrl, reader)
-	if err != nil {
-		return "", err
-	}
-
-	request.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-	response, err := client.Do(request)
-	if err != nil {
-		return "", err
-	}
-	defer response.Body.Close()
-
-	body, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return "", err
-	}
-
-	var tokenResponse TokenResponse
-	err = json.Unmarshal(body, &tokenResponse)
-	if err != nil {
-		return "", err
-	}
-
-	return tokenResponse.Token, nil
-}
 
 func AddUser(c *gin.Context) {
 
@@ -91,7 +37,7 @@ func AddUser(c *gin.Context) {
 
 	user.ID = uuid.NewString()
 
-	token, err := getBearerToken(c, getTokenUrl)
+	token, err := services.GetBearerToken(c, getTokenUrl, os.Getenv("BLOCKCHAIN_ADMIN"), os.Getenv("BLOCKCHAIN_ADMIN_SECRET"))
 
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -100,7 +46,7 @@ func AddUser(c *gin.Context) {
 		return
 	}
 
-	blockchainUser := BlockchainUser{
+	blockchainUser := models.BlockchainUser{
 		Id:     user.ID,
 		Secret: user.Password,
 	}
