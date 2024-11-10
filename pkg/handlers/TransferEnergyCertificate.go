@@ -8,17 +8,16 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 )
 
-func AddEnergyCertificate(c *gin.Context) {
+func TransferEnergyCertificate(c *gin.Context) {
 	blockhainURL := os.Getenv("BLOCKCHAIN_URL")
-	addEnergyCertificateUrl := blockhainURL + "/invoke/channel1/energyTradingBlockchain"
+	transferEnergyCertificateUrl := blockhainURL + "/invoke/channel1/energyTradingBlockchain"
 
-	var energyCertificate models.EnergyCertificate
+	var transferCertificateBody models.TransferCertificate
 
 	claims, exists := c.Get("claims")
 	if !exists {
@@ -26,7 +25,7 @@ func AddEnergyCertificate(c *gin.Context) {
 		return
 	}
 
-	err := c.ShouldBindJSON(&energyCertificate)
+	err := c.ShouldBindJSON(&transferCertificateBody)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"error": "Cannot bind JSON: " + err.Error(),
@@ -38,9 +37,11 @@ func AddEnergyCertificate(c *gin.Context) {
 	userID := userClaims["sum"].(string)
 	blockchainToken := userClaims["btkn"].(string)
 
+	price := 12.3
+
 	blockchainMethod := models.BlockchainMethod{
-		Method: "EnergyCertificateContract:CreateEnergyCertificate",
-		Args:   []string{userID, userID, time.Now().Format("2006-01-02"), fmt.Sprintf("%d", energyCertificate.UsableMonth), fmt.Sprintf("%d", energyCertificate.UsableYear), energyCertificate.RegulatoryAuthorityID, fmt.Sprintf("%d", 2)},
+		Method: "EnergyCertificateContract:TransferEnergyCertificate",
+		Args:   []string{transferCertificateBody.EnergyCertificateID, userID, fmt.Sprintf("%.2f", price)},
 	}
 
 	data, err := json.Marshal(blockchainMethod)
@@ -51,7 +52,7 @@ func AddEnergyCertificate(c *gin.Context) {
 
 	reader := bytes.NewBuffer(data)
 
-	request, errorPost := http.NewRequest("POST", addEnergyCertificateUrl, reader)
+	request, errorPost := http.NewRequest("POST", transferEnergyCertificateUrl, reader)
 	if errorPost != nil {
 		panic(errorPost)
 	}
@@ -61,10 +62,10 @@ func AddEnergyCertificate(c *gin.Context) {
 	request.Header.Set("Content-Type", "application/json")
 	client := &http.Client{}
 
-	response, err := client.Do(request)
-	if err != nil {
+	response, error := client.Do(request)
+	if error != nil {
 		c.JSON(400, gin.H{
-			"error": "Cannot do request: " + err.Error(),
+			"error": "Cannot do request: " + error.Error(),
 		})
 		return
 	}

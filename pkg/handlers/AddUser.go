@@ -89,5 +89,4 @@ func AddUser(c *gin.Context) {
 
 	defer response.Body.Close()
 	c.Status(204)
-
 }

@@ -3,8 +3,10 @@ package models
 import "time"
 
 type Transaction struct {
-	TokenRef        string    `json:"tokenRef"`
-	BlockchainUser  string    `json:"blockchainUser"`
-	TransactionDate time.Time `json:"transactionDate"`
-	Price           float64   `json:"price"`
+	TransactionID       string    `json:"transactionId"`
+	CertificateTokenRef string    `json:"tokenRef"`
+	FromUserID          string    `json:"fromUserId"`
+	ToUserID            string    `json:"toUserId"`
+	TransactionDate     time.Time `json:"transactionDate"`
+	Price               float64   `json:"price"`
 }
