@@ -6,7 +6,7 @@ CREATE TABLE Admin (
 
 CREATE TABLE location (
     locationId SERIAL PRIMARY KEY,
-    postalCode VARCHAR(10) NOT NULL,
+    postal_code VARCHAR(10) NOT NULL,
     city VARCHAR(50) NOT NULL,
     UNIQUE (postalCode, city)
 )
@@ -24,12 +24,19 @@ CREATE TABLE users (
     UNIQUE (email)
 );
 
-CREATE TABLE consumption (
-    userId UUID REFERENCES users(id) ON DELETE CASCADE,
-    consumptionYear INT NOT NULL,
-    consumptionMonth INT NOT NULL,
-    energyConsumed DOUBLE PRECISION NOT NULL,
-    PRIMARY KEY (userId, consumptionYear, consumptionMonth)
+CREATE TABLE energyTypes (
+    id SERIAL PRIMARY KEY,
+    energy_type VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE consumptions (
+    id SERIAL PRIMARY KEY,
+    user_id UUID NOT NUL REFERENCES users(id) ON DELETE CASCADE,
+    consumption_year INT NOT NULL,
+    consumption_month INT NOT NULL,
+    energy_type_id INT NOT NULL REFERENCES energyTypes(id),
+    energy_consumed DOUBLE PRECISION NOT NULL,
+    UNIQUE (user_id, consumption_year, consumption_month, energy_type_id)
 );
 
 CREATE TABLE energyProducers (
@@ -45,3 +52,10 @@ CREATE TABLE RegulatoryAuthority (
     address VARCHAR(255) NOT NULL,
     apiURL VARCHAR(255)
 );
+
+INSERT INTO energyTypes (energy_type) VALUES
+('Solar'),
+('Wind'),
+('Hydropower'),
+('Geothermal'),
+('Biomass');
