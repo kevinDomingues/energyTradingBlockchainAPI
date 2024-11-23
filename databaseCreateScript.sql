@@ -8,7 +8,7 @@ CREATE TABLE location (
     locationId SERIAL PRIMARY KEY,
     postal_code VARCHAR(10) NOT NULL,
     city VARCHAR(50) NOT NULL,
-    UNIQUE (postalCode, city)
+    UNIQUE (postal_code, city)
 )
 ;
 CREATE TABLE users (
@@ -31,7 +31,7 @@ CREATE TABLE energyTypes (
 
 CREATE TABLE consumptions (
     id SERIAL PRIMARY KEY,
-    user_id UUID NOT NUL REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     consumption_year INT NOT NULL,
     consumption_month INT NOT NULL,
     energy_type_id INT NOT NULL REFERENCES energyTypes(id),

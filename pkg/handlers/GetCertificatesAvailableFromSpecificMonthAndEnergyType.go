@@ -30,7 +30,7 @@ func GetCertificatesAvailableFromSpecificMonthAndEnergyType(c *gin.Context) {
 	blockchainToken := userClaims["btkn"].(string)
 
 	blockchainMethod := models.BlockchainMethod{
-		Method: "EnergyCertificateContract:GetCertificatesAvailableFromSpecificMonth",
+		Method: "EnergyCertificateContract:GetCertificatesAvailableFromSpecificMonthAndEnergyType",
 		Args:   []string{usableMonth, usableYear, energyType},
 	}
 

@@ -39,6 +39,11 @@ func ConfigRoutes(router *gin.Engine) *gin.Engine {
 			EnergyCertificate.GET("/from/:usableMonth/:usableYear/type/:energyType", handlers.GetCertificatesAvailableFromSpecificMonthAndEnergyType)
 			EnergyCertificate.POST("/transfer", handlers.TransferEnergyCertificate)
 		}
+		Consumptions := main.Group("consumptions", middlewares.Auth())
+		{
+			Consumptions.GET("/:year", handlers.GetConsumptionByYear)
+			Consumptions.GET("/from/:month/:year", handlers.GetConsumptionFromSpecificMonth)
+		}
 		main.POST("login", handlers.Login)
 	}
 	return router
