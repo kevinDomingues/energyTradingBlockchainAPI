@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"energyTradingBlockchainAPI/pkg/models"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -44,11 +45,22 @@ func AddEnergyCertificate(c *gin.Context) {
 		quantity = 1
 	}
 
-	createCertificateRequest.RegulatoryAuthorityID = "2"
-
 	userClaims := claims.(jwt.MapClaims)
 	userID := userClaims["sum"].(string)
 	blockchainToken := userClaims["btkn"].(string)
+
+	validatedUser, err := validateUser(userID)
+	if err != nil {
+		c.JSON((http.StatusInternalServerError), gin.H{"error": err.Error()})
+		return
+	}
+
+	if !validatedUser.Accepted {
+		c.JSON((http.StatusForbidden), gin.H{"error": "Regulatory Authority refused this request"})
+		return
+	}
+
+	createCertificateRequest.RegulatoryAuthorityID = validatedUser.RegulatoryAuthority
 
 	for i := 0; i < quantity; i++ {
 		blockchainMethod := models.BlockchainMethod{
@@ -93,4 +105,46 @@ func AddEnergyCertificate(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("%d certificates created", quantity)})
+}
+
+func validateUser(userId string) (models.UserValidationResponse, error) {
+	mockServerURL := os.Getenv("MOCK_SERVER_URL")
+	validateUserUrl := mockServerURL + "/validate-user"
+
+	userValidationRequest := models.UserValidation{
+		UserId: userId,
+	}
+
+	data, err := json.Marshal(userValidationRequest)
+	if err != nil {
+		return models.UserValidationResponse{}, fmt.Errorf("failed to marshal userValidationRequest method: %v", err)
+	}
+
+	reader := bytes.NewBuffer(data)
+	request, err := http.NewRequest("POST", validateUserUrl, reader)
+	if err != nil {
+		return models.UserValidationResponse{}, fmt.Errorf("failed to create request: %v", err)
+	}
+
+	request.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	response, err := client.Do(request)
+	if err != nil {
+		return models.UserValidationResponse{}, fmt.Errorf("failed to send request: %v", err)
+	}
+	defer response.Body.Close()
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return models.UserValidationResponse{}, fmt.Errorf("failed to read response body: %v", err)
+	}
+
+	var userValidationResponse models.UserValidationResponse
+	err = json.Unmarshal(body, &userValidationResponse)
+	if err != nil {
+		return models.UserValidationResponse{}, err
+	}
+
+	return userValidationResponse, nil
 }

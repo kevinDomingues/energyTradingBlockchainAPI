@@ -47,9 +47,13 @@ func TransferEnergyCertificate(c *gin.Context) {
 
 	oldOwnerId := energyCertificate.OwnerID
 
-	price := 12.3
+	price, err := getTransferPrice(transferCertificateBody.Quantity, transferCertificateBody.Availability)
+	if err != nil {
+		c.JSON((http.StatusInternalServerError), gin.H{"error": err.Error()})
+		return
+	}
 
-	if err := transferEnergyCertificate(transferCertificateBody.EnergyCertificateID, userID, price, blockchainToken, transferEnergyCertificateUrl); err != nil {
+	if err := transferEnergyCertificate(transferCertificateBody.EnergyCertificateID, userID, price.Price, blockchainToken, transferEnergyCertificateUrl); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -116,6 +120,49 @@ func getEnergyCertificate(energyCertificateID, blockchainToken, url string) (mod
 	}
 
 	return energyCertificateResponse.Response, nil
+}
+
+func getTransferPrice(quantity int, availability int) (models.Price, error) {
+	mockServerURL := os.Getenv("MOCK_SERVER_URL")
+	getTransferPriceUrl := mockServerURL + "/calculate-price"
+
+	priceRequest := models.PriceRequest{
+		Quantity:     quantity,
+		Availability: availability,
+	}
+
+	data, err := json.Marshal(priceRequest)
+	if err != nil {
+		return models.Price{}, fmt.Errorf("failed to marshal priceRequest method: %v", err)
+	}
+
+	reader := bytes.NewBuffer(data)
+	request, err := http.NewRequest("POST", getTransferPriceUrl, reader)
+	if err != nil {
+		return models.Price{}, fmt.Errorf("failed to create request: %v", err)
+	}
+
+	request.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	response, err := client.Do(request)
+	if err != nil {
+		return models.Price{}, fmt.Errorf("failed to send request: %v", err)
+	}
+	defer response.Body.Close()
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return models.Price{}, fmt.Errorf("failed to read response body: %v", err)
+	}
+
+	var priceResponse models.Price
+	err = json.Unmarshal(body, &priceResponse)
+	if err != nil {
+		return models.Price{}, err
+	}
+
+	return priceResponse, nil
 }
 
 func transferEnergyCertificate(energyCertificateID string, userID string, price float64, blockchainToken string, url string) error {

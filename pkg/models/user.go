@@ -11,3 +11,12 @@ type User struct {
 	PostalCode     string `json:"postalCode"`
 	UserType       int    `json:"userType"`
 }
+
+type UserValidation struct {
+	UserId string `json:"userId"`
+}
+
+type UserValidationResponse struct {
+	RegulatoryAuthority string `json:"regulatoryId"`
+	Accepted            bool   `json:"accepted"`
+}

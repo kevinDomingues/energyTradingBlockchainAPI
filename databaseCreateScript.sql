@@ -47,7 +47,7 @@ CREATE TABLE energyProducers (
 );
 
 CREATE TABLE RegulatoryAuthority (
-    id SERIAL PRIMARY KEY,
+    id UUID PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     address VARCHAR(255) NOT NULL,
     apiURL VARCHAR(255)
